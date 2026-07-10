@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MixifyStats | Spotify-inspired DJ analytics</title>
+    <meta
+      name="description"
+      content="A Spotify-style stats dashboard with a DJ mixer-inspired interface."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="background-glow glow-one"></div>
+    <div class="background-glow glow-two"></div>
+
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-logo" aria-hidden="true">
+            <svg viewBox="0 0 96 96" role="img" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="48" cy="48" r="44" fill="#162616" stroke="#7dc885" stroke-width="4" />
+              <path d="M20 60 Q34 40 48 52 T76 36" fill="none" stroke="#7dc885" stroke-width="8" stroke-linecap="round" />
+              <rect x="28" y="52" width="8" height="24" rx="4" fill="#7dc885" />
+              <rect x="42" y="42" width="8" height="34" rx="4" fill="#9dde98" />
+              <rect x="56" y="56" width="8" height="20" rx="4" fill="#7dc885" />
+              <rect x="70" y="36" width="8" height="40" rx="4" fill="#9dde98" />
+            </svg>
+          </div>
+          <div>
+            <p class="brand-name">MixifyStats</p>
+            <p class="brand-subtitle">Listening intelligence for modern DJs</p>
+          </div>
+        </div>
+        <nav class="topnav">
+          <a href="#overview">Overview</a>
+          <a href="#mixer">Mixer</a>
+          <a href="#insights">Insights</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero card" id="overview">
+          <div class="hero-copy">
+            <p class="eyebrow">Spotify-style stats dashboard</p>
+            <h1>Turn your listening habits into a visual performance.</h1>
+            <p class="hero-text">
+              Discover your monthly top tracks, daily artist streaks, and a playful DJ-style mixer that feels like a live set.
+            </p>
+            <div class="hero-actions">
+              <button id="connectButton" class="primary-btn">Connect Spotify</button>
+              <button class="secondary-btn">View demo insights</button>
+            </div>
+            <div class="status-pill" id="statusPill">Ready to connect to Spotify</div>
+          </div>
+
+          <div class="hero-panel">
+            <div class="panel-card">
+              <p class="mini-label">Current pulse</p>
+              <h3 id="streakValue">12 day streak</h3>
+              <p class="muted-text">Your listening rhythm is peaking during late-night sets.</p>
+            </div>
+            <div class="panel-card compact">
+              <p class="mini-label">Tonight's energy</p>
+              <div class="energy-meter">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="stats-grid">
+          <article class="card stat-card">
+            <p class="mini-label">Top track</p>
+            <h3 id="topTrack">Midnight Echo</h3>
+            <p class="muted-text">Played 24 times this month</p>
+          </article>
+          <article class="card stat-card">
+            <p class="mini-label">Daily artist</p>
+            <h3 id="topArtist">Luna Vale</h3>
+            <p class="muted-text">Most frequent companion this week</p>
+          </article>
+          <article class="card stat-card">
+            <p class="mini-label">Peak hour</p>
+            <h3 id="peakHour">22:00</h3>
+            <p class="muted-text">Best time for deep listening</p>
+          </article>
+        </section>
+
+        <section class="dashboard-grid">
+          <article class="card chart-card" id="insights">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Monthly breakdown</p>
+                <h2>Your sound signature</h2>
+              </div>
+              <span class="pill">Live demo</span>
+            </div>
+            <div class="chart" aria-label="Listening bars">
+              <div class="chart-bar" style="--height: 62%"></div>
+              <div class="chart-bar" style="--height: 82%"></div>
+              <div class="chart-bar" style="--height: 74%"></div>
+              <div class="chart-bar" style="--height: 91%"></div>
+              <div class="chart-bar" style="--height: 68%"></div>
+              <div class="chart-bar" style="--height: 88%"></div>
+            </div>
+            <div class="chart-labels">
+              <span>Jan</span>
+              <span>Feb</span>
+              <span>Mar</span>
+              <span>Apr</span>
+              <span>May</span>
+              <span>Jun</span>
+            </div>
+          </article>
+
+          <article class="card mixer-card" id="mixer">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">DJ mixer</p>
+                <h2>Fine tune your vibe</h2>
+              </div>
+              <span class="pill">Interactive</span>
+            </div>
+            <div class="mixer-sliders">
+              <label>
+                <span>Volume</span>
+                <input id="volume" type="range" min="0" max="100" value="72" />
+                <strong id="volumeValue">72%</strong>
+              </label>
+              <label>
+                <span>Low</span>
+                <input id="low" type="range" min="0" max="100" value="41" />
+                <strong id="lowValue">41%</strong>
+              </label>
+              <label>
+                <span>Mid</span>
+                <input id="mid" type="range" min="0" max="100" value="63" />
+                <strong id="midValue">63%</strong>
+              </label>
+              <label>
+                <span>High</span>
+                <input id="high" type="range" min="0" max="100" value="58" />
+                <strong id="highValue">58%</strong>
+              </label>
+            </div>
+            <div class="eq-bars">
+              <div class="eq-bar"><span id="eqLow"></span></div>
+              <div class="eq-bar"><span id="eqMid"></span></div>
+              <div class="eq-bar"><span id="eqHigh"></span></div>
+            </div>
+          </article>
+        </section>
+      </main>
+
+      <footer class="footer card">
+        <p>Built as a polished front-end prototype for a Spotify-inspired analytics experience.</p>
+        <p>Sign in with your own Spotify account to see your real listening stats.</p>
+      </footer>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
