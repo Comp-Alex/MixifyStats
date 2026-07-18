@@ -47,7 +47,7 @@ const STORAGE_KEYS = {
 const DEFAULT_CLIENT_ID = 'b340c0f1c1f142329516f6be01b436bd';
 
 const CONFIG = {
-  fallbackRedirectUri: 'http://127.0.0.1:3000/callback.html',
+  fallbackRedirectUri: 'http://127.0.0.1:3000/',
   scopes: ['user-top-read', 'user-read-private', 'user-read-email'],
 };
 
@@ -61,7 +61,7 @@ function getAppBaseUrl() {
   }
 
   const normalizedPath = segments.length ? `/${segments.join('/')}` : '';
-  return `${origin}${normalizedPath}`;
+  return `${origin}${normalizedPath}/`;
 }
 
 function updateMixerUI() {

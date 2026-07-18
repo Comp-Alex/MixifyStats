@@ -21,15 +21,14 @@ This is my development of MixifyStats — a Spotify-style stats dashboard with a
 
 ## Setup Spotify OAuth
 1. Create a Spotify app at https://developer.spotify.com/dashboard.
-2. Add these redirect URIs in Spotify:
-   - Local dev: `http://127.0.0.1:3000/callback.html`
-   - Vercel: `https://<your-vercel-domain>/callback`
+2. Add this redirect URI in Spotify:
+   - Local dev and Vercel: `https://<your-vercel-domain>/`
 3. In [script.js](script.js), the Spotify developer client ID is already set to `b340c0f1c1f142329516f6be01b436bd`.
 4. Start the local preview from the project root with an HTTP server:
    - python -m http.server 3000
 5. Open http://127.0.0.1:3000 in your browser and click Connect Spotify.
 
-> Vercel rewrites `/callback` to `/callback.html` using `vercel.json`, so the deployed app should use the `/callback` redirect URI.
+> The app now uses the root URL as the OAuth callback target, so Spotify should redirect to the index page at `/`.
 
 > Do not open `index.html` directly from the file system (`file://`). Spotify login requires a local HTTP server or deployed app URL.
 
@@ -55,6 +54,6 @@ You can still run locally, but you need a local server that supports the API rou
 1. Push this project to GitHub.
 2. Import it into Vercel.
 3. Add the same redirect URI to your Spotify app for your production domain, such as:
-   - https://your-app.vercel.app/callback.html
+   - https://your-app.vercel.app/
 4. In the Vercel dashboard, add `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET` as environment variables.
 5. Deploy the app and then click Connect Spotify to test login flow.

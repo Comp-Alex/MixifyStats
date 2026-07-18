@@ -1,3 +1,5 @@
+const DEFAULT_CLIENT_ID = 'b340c0f1c1f142329516f6be01b436bd';
+
 const handler = async (req, res) => {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -5,11 +7,11 @@ const handler = async (req, res) => {
   }
 
   const { grant_type, code, redirect_uri, code_verifier, refresh_token } = req.body || {};
-  const clientId = process.env.SPOTIFY_CLIENT_ID;
+  const clientId = process.env.SPOTIFY_CLIENT_ID || DEFAULT_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 
-  if (!clientId || !clientSecret) {
-    return res.status(500).json({ error: 'Server misconfigured: missing Spotify credentials' });
+  if (!clientSecret) {
+    return res.status(500).json({ error: 'Server misconfigured: missing Spotify client secret' });
   }
 
   if (!grant_type) {
