@@ -140,8 +140,9 @@
 
       function getRedirectUri() {
         const origin = window.location.origin;
+        const path = window.location.pathname;
         if (origin && origin !== 'null' && origin !== 'file://') {
-          return `${getAppBaseUrl()}callback.html`;
+          return `${origin}${path}`;
         }
         return 'http://127.0.0.1:3000/callback.html';
       }

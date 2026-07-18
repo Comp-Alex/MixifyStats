@@ -230,6 +230,14 @@ function getConfiguredClientId() {
   return DEFAULT_CLIENT_ID;
 }
 
+function getCallbackPath() {
+  const hostname = window.location.hostname;
+  if (hostname === '127.0.0.1' || hostname === 'localhost' || hostname === '::1') {
+    return '/callback.html';
+  }
+  return '/callback';
+}
+
 function getRedirectUri() {
   const configuredRedirectUri = new URLSearchParams(window.location.search).get('redirect_uri');
   if (configuredRedirectUri) {
@@ -238,7 +246,7 @@ function getRedirectUri() {
 
   const origin = window.location.origin;
   if (origin && origin !== 'null' && origin !== 'file://') {
-    return `${getAppBaseUrl()}callback.html`;
+    return `${getAppBaseUrl()}${getCallbackPath()}`;
   }
 
   console.warn('Running from file://; Spotify login requires a local HTTP server at http://127.0.0.1:3000');
