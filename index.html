@@ -53,11 +53,18 @@
             <p class="hero-text">
               Discover your monthly top tracks, daily artist streaks, and a playful DJ-style mixer that feels like a live set.
             </p>
+            <div class="client-id-entry">
+              <label for="clientIdInput">Spotify Client ID</label>
+              <input id="clientIdInput" type="text" placeholder="Leave blank to use the default client ID" aria-label="Spotify Client ID" />
+              <p class="client-id-help">If you don’t have your own Client ID yet, the app will use the default one below.</p>
+              <p class="client-id-default"><strong>Default Client ID:</strong> b340c0f1c1f142329516f6be01b436bd</p>
+            </div>
             <div class="hero-actions">
               <button id="connectButton" class="primary-btn">Connect Spotify</button>
               <button class="secondary-btn">View demo insights</button>
             </div>
             <div class="status-pill" id="statusPill">Ready to connect to Spotify</div>
+            <p class="redirect-info" id="redirectUriInfo"></p>
           </div>
 
           <div class="hero-panel">
@@ -66,8 +73,8 @@
                 <div class="profile-avatar">AL</div>
                 <div>
                   <p class="mini-label">Profile</p>
-                  <h3>Alexa</h3>
-                  <p class="muted-text">@alexa.dj</p>
+                  <h3>Alex</h3>
+                  <p class="muted-text">@alex.dj</p>
                 </div>
               </div>
               <div class="profile-stats">
@@ -106,12 +113,12 @@
         <section class="stats-grid">
           <article class="card stat-card">
             <p class="mini-label">Top track</p>
-            <h3 id="topTrack">Midnight Echo</h3>
+            <h3 id="topTrack">Fever Few</h3>
             <p class="muted-text">Played 24 times this month</p>
           </article>
           <article class="card stat-card">
             <p class="mini-label">Daily artist</p>
-            <h3 id="topArtist">Luna Vale</h3>
+            <h3 id="topArtist">Megumi Acorda</h3>
             <p class="muted-text">Most frequent companion this week</p>
           </article>
           <article class="card stat-card">

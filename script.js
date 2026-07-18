@@ -10,6 +10,7 @@ const moodRangeLabel = document.getElementById('moodRangeLabel');
 const moodChart = document.getElementById('moodChart');
 const moodInput = document.getElementById('moodInput');
 const applyMoodButton = document.getElementById('applyMoodButton');
+const clientIdInput = document.getElementById('clientIdInput');
 const moodFeedback = document.getElementById('moodFeedback');
 const rangeButtons = Array.from(document.querySelectorAll('.range-btn'));
 
@@ -29,8 +30,8 @@ const eqBars = {
 
 const mockData = {
   streak: '14 day streak',
-  track: 'Midnight Echo',
-  artist: 'Luna Vale',
+  track: 'Fever Few',
+  artist: 'Megumi Acorda',
   hour: '22:00',
   status: 'Demo mode ready',
 };
@@ -42,12 +43,13 @@ const STORAGE_KEYS = {
   profile: 'mixifystats_profile',
   codeVerifier: 'mixifystats_code_verifier',
   authState: 'mixifystats_auth_state',
+  clientId: 'mixifystats_client_id',
 };
 
 const DEFAULT_CLIENT_ID = 'b340c0f1c1f142329516f6be01b436bd';
 
 const CONFIG = {
-  fallbackRedirectUri: 'http://127.0.0.1:3000/',
+  fallbackRedirectUri: 'http://127.0.0.1:3000/callback.html',
   scopes: ['user-top-read', 'user-read-private', 'user-read-email'],
 };
 
@@ -226,8 +228,38 @@ function setDemoState(statusText = 'Ready to connect to Spotify') {
   updateConnectButton(false);
 }
 
+function getStoredClientId() {
+  return window.localStorage.getItem(STORAGE_KEYS.clientId) || '';
+}
+
+function saveClientId(value) {
+  const trimmed = (value || '').trim();
+  if (trimmed) {
+    window.localStorage.setItem(STORAGE_KEYS.clientId, trimmed);
+  } else {
+    window.localStorage.removeItem(STORAGE_KEYS.clientId);
+  }
+}
+
 function getConfiguredClientId() {
-  return DEFAULT_CLIENT_ID;
+  const customId = clientIdInput?.value?.trim() || getStoredClientId();
+  return customId || DEFAULT_CLIENT_ID;
+}
+
+function populateClientIdInput() {
+  if (clientIdInput) {
+    const saved = getStoredClientId();
+    if (saved) {
+      clientIdInput.value = saved;
+    }
+  }
+}
+
+function updateRedirectInfo() {
+  const redirectInfo = document.getElementById('redirectUriInfo');
+  if (!redirectInfo) return;
+  const currentUri = getRedirectUri();
+  redirectInfo.innerHTML = `Current OAuth redirect URI: <strong>${currentUri}</strong>`;
 }
 
 function getCallbackPath() {
@@ -251,6 +283,67 @@ function getRedirectUri() {
 
   console.warn('Running from file://; Spotify login requires a local HTTP server at http://127.0.0.1:3000');
   return CONFIG.fallbackRedirectUri;
+}
+
+async function exchangeAuthorizationCode(code) {
+  const codeVerifier = getStoredValue(STORAGE_KEYS.codeVerifier);
+  if (!codeVerifier) {
+    throw new Error('Missing code verifier for PKCE exchange');
+  }
+
+  const response = await fetch('/api/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      grant_type: 'authorization_code',
+      code,
+      redirect_uri: getRedirectUri(),
+      code_verifier: codeVerifier,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw new Error(errorBody.error_description || errorBody.error || 'Token exchange failed');
+  }
+
+  const data = await response.json();
+  storeValue(STORAGE_KEYS.accessToken, data.access_token);
+  storeValue(STORAGE_KEYS.refreshToken, data.refresh_token);
+  storeValue(STORAGE_KEYS.expiresAt, String(Date.now() + data.expires_in * 1000));
+  return data.access_token;
+}
+
+async function handleAuthCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  const state = params.get('state');
+  if (!code) {
+    return false;
+  }
+
+  const expectedState = getStoredValue(STORAGE_KEYS.authState);
+  if (!state || !expectedState || state !== expectedState) {
+    statusPill.textContent = 'Spotify auth state mismatch. Please try again.';
+    clearStoredAuth();
+    return false;
+  }
+
+  try {
+    statusPill.textContent = 'Completing Spotify sign-in...';
+    const accessToken = await exchangeAuthorizationCode(code);
+    if (!accessToken) {
+      throw new Error('No access token returned from Spotify');
+    }
+
+    window.history.replaceState({}, document.title, window.location.pathname);
+    await loadSpotifyData('week');
+    return true;
+  } catch (error) {
+    console.error('Auth callback failed', error);
+    setDemoState('Spotify authentication failed. Please reconnect.');
+    return false;
+  }
 }
 
 function setConnectedState(profileName, streakText, trackName, artistName, hourText) {
@@ -477,8 +570,8 @@ async function loadSpotifyData(range = 'week') {
     }
 
     const profileName = profile.display_name || profile.id || 'Spotify listener';
-    const trackName = track?.name || 'Midnight Echo';
-    const artistName = artist?.name || track?.artists?.[0]?.name || 'Luna Vale';
+    const trackName = track?.name || 'Fever Few';
+    const artistName = artist?.name || track?.artists?.[0]?.name || 'Megumi Acorda';
     const streakText = `${Math.min(30, Math.max(7, Math.round((artist?.popularity || 60) / 5)))} day streak`;
     const hourText = '22:00';
     const moodData = getMoodFromAudioFeatures(audioFeatures, trackName, artistName, range);
@@ -517,6 +610,10 @@ sliderIds.forEach((id) => {
   input.addEventListener('input', updateMixerUI);
 });
 
+if (clientIdInput) {
+  clientIdInput.addEventListener('input', () => saveClientId(clientIdInput.value));
+}
+
 if (applyMoodButton) {
   applyMoodButton.addEventListener('click', applyMoodMix);
 }
@@ -539,7 +636,13 @@ rangeButtons.forEach((button) => {
   });
 });
 
+populateClientIdInput();
+updateRedirectInfo();
 setMoodRangeLabel('week');
 updateMixerUI();
 setDemoState();
-loadSpotifyData('week');
+handleAuthCallback().then((handled) => {
+  if (!handled) {
+    loadSpotifyData('week');
+  }
+});

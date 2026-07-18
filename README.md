@@ -45,6 +45,8 @@ Set these in your Vercel project settings:
 - `SPOTIFY_CLIENT_ID`
 - `SPOTIFY_CLIENT_SECRET`
 
+> Keep `SPOTIFY_CLIENT_SECRET` private. Do not store it in the repository or commit it to Git.
+
 ### Local testing
 You can still run locally, but you need a local server that supports the API route, such as Vercel CLI or a Node environment.
 
