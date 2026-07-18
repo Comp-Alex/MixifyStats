@@ -61,6 +61,30 @@
           </div>
 
           <div class="hero-panel">
+            <div class="panel-card profile-card">
+              <div class="profile-header">
+                <div class="profile-avatar">AB</div>
+                <div>
+                  <p class="mini-label">Profile</p>
+                  <h3>Aria Blake</h3>
+                  <p class="muted-text">@aria.dj</p>
+                </div>
+              </div>
+              <div class="profile-stats">
+                <div>
+                  <span>18</span>
+                  <p>playlists created</p>
+                </div>
+                <div>
+                  <span>28</span>
+                  <p>sessions</p>
+                </div>
+                <div>
+                  <span>17</span>
+                  <p>moods tracked</p>
+                </div>
+              </div>
+            </div>
             <div class="panel-card">
               <p class="mini-label">Current pulse</p>
               <h3 id="streakValue">12 day streak</h3>
@@ -101,37 +125,50 @@
           <article class="card chart-card" id="insights">
             <div class="section-heading">
               <div>
-                <p class="eyebrow">Monthly breakdown</p>
-                <h2>Your sound signature</h2>
+                <p class="eyebrow" id="moodRangeLabel">Mood insights</p>
+                <h2>Your listening pulse</h2>
               </div>
-              <span class="pill">Live demo</span>
+              <span class="pill">Live from Spotify</span>
             </div>
-            <div class="chart" aria-label="Listening bars">
-              <div class="chart-bar" style="--height: 62%"></div>
-              <div class="chart-bar" style="--height: 82%"></div>
-              <div class="chart-bar" style="--height: 74%"></div>
-              <div class="chart-bar" style="--height: 91%"></div>
-              <div class="chart-bar" style="--height: 68%"></div>
-              <div class="chart-bar" style="--height: 88%"></div>
+            <div class="chart-summary">
+              <span class="mood-badge" id="weeklyMoodBadge">Balanced glow</span>
+              <p class="muted-text" id="weeklyMoodSummary">
+                Your week feels steady, reflective, and easy to move with.
+              </p>
             </div>
-            <div class="chart-labels">
-              <span>Jan</span>
-              <span>Feb</span>
-              <span>Mar</span>
-              <span>Apr</span>
-              <span>May</span>
-              <span>Jun</span>
+            <div class="chart-heading">Mood trend by time range</div>
+            <div class="range-switch" role="tablist" aria-label="Time range selector">
+              <button class="range-btn active" data-range="day">Daily</button>
+              <button class="range-btn" data-range="week">Weekly</button>
+              <button class="range-btn" data-range="month">Past month</button>
+            </div>
+            <div class="mood-chart" id="moodChart" aria-label="Mood bars"></div>
+            <div class="chart-labels" id="moodChartLabels">
+              <span>Energy</span>
+              <span>Mood</span>
+              <span>Flow</span>
+              <span>Tempo</span>
+              <span>Focus</span>
+            </div>
+            <div class="chart-legend">
+              <span><i class="legend-dot high"></i>High energy</span>
+              <span><i class="legend-dot calm"></i>Calm focus</span>
             </div>
           </article>
 
           <article class="card mixer-card" id="mixer">
             <div class="section-heading">
               <div>
-                <p class="eyebrow">DJ mixer</p>
-                <h2>Fine tune your vibe</h2>
+                <p class="eyebrow">DJ mood mixer</p>
+                <h2>Tell the DJ your mood</h2>
               </div>
-              <span class="pill">Interactive</span>
+              <span class="pill">Mood-driven</span>
             </div>
+            <label class="mood-prompt">
+              <span>What mood should the mix match?</span>
+              <textarea id="moodInput" rows="3" placeholder="e.g. sleepy, dreamy, upbeat, late-night, focused">late-night focus</textarea>
+            </label>
+            <button id="applyMoodButton" class="primary-btn">Let the DJ mix it</button>
             <div class="mixer-sliders">
               <label>
                 <span>Volume</span>
@@ -154,6 +191,7 @@
                 <strong id="highValue">58%</strong>
               </label>
             </div>
+            <div class="mood-feedback" id="moodFeedback">DJ mode: balanced and warm.</div>
             <div class="eq-bars">
               <div class="eq-bar"><span id="eqLow"></span></div>
               <div class="eq-bar"><span id="eqMid"></span></div>

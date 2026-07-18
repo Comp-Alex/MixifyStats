@@ -125,69 +125,112 @@
         window.localStorage.setItem(key, value);
       }
 
+      function getAppBaseUrl() {
+        const { origin, pathname } = window.location;
+        const trimmedPath = pathname.replace(/\/+$/, '');
+        const segments = trimmedPath.split('/').filter(Boolean);
+
+        if (segments.length && ['callback', 'callback.html'].includes(segments[segments.length - 1])) {
+          segments.pop();
+        }
+
+        const normalizedPath = segments.length ? `/${segments.join('/')}/` : '/';
+        return `${origin}${normalizedPath}`;
+      }
+
       function getRedirectUri() {
         const origin = window.location.origin;
         if (origin && origin !== 'null' && origin !== 'file://') {
-          return `${origin}/callback.html`;
+          return `${getAppBaseUrl()}callback.html`;
         }
         return 'http://127.0.0.1:3000/callback.html';
       }
 
       const DEFAULT_CLIENT_ID = 'b340c0f1c1f142329516f6be01b436bd';
 
-      async function finishAuth() {
-        if (error) {
-          window.location.href = '/';
-          return;
+      async function exchangeWithBackend(body) {
+        try {
+          const response = await fetch('/api/token', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+          });
+
+          if (!response.ok) {
+            return null;
+          }
+
+          return await response.json();
+        } catch (_err) {
+          return null;
         }
+      }
 
-        const clientId = DEFAULT_CLIENT_ID;
-        const redirectUri = getRedirectUri();
-        const codeVerifier = window.localStorage.getItem(STORAGE_KEYS.codeVerifier);
-        const expectedState = window.localStorage.getItem(STORAGE_KEYS.authState);
-
-        if (!code || !codeVerifier || state !== expectedState) {
-          window.location.href = '/';
-          return;
-        }
-
-        const body = new URLSearchParams({
-          grant_type: 'authorization_code',
-          code,
-          redirect_uri: redirectUri,
-          client_id: clientId,
-          code_verifier: codeVerifier,
-        });
-
-        if (!clientId) {
-          window.location.href = '/';
-          return;
-        }
-
+      async function exchangeDirect(body) {
         try {
           const response = await fetch('https://accounts.spotify.com/api/token', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: body.toString(),
+            body: new URLSearchParams(body).toString(),
           });
 
           if (!response.ok) {
-            throw new Error('Token exchange failed');
+            return null;
           }
 
-          const data = await response.json();
+          return await response.json();
+        } catch (_err) {
+          return null;
+        }
+      }
+
+      async function finishAuth() {
+        if (error) {
+          window.location.href = getAppBaseUrl();
+          return;
+        }
+
+        const redirectUri = getRedirectUri();
+        const codeVerifier = window.localStorage.getItem(STORAGE_KEYS.codeVerifier);
+        const expectedState = window.localStorage.getItem(STORAGE_KEYS.authState);
+
+        if (!code || !codeVerifier || state !== expectedState) {
+          window.location.href = getAppBaseUrl();
+          return;
+        }
+
+        const tokenRequestBody = {
+          grant_type: 'authorization_code',
+          code,
+          redirect_uri: redirectUri,
+          code_verifier: codeVerifier,
+        };
+
+        const isLocalhost = ['127.0.0.1', 'localhost', '::1'].includes(window.location.hostname);
+        let data = await exchangeWithBackend(tokenRequestBody);
+        if (!data && isLocalhost) {
+          data = await exchangeDirect(tokenRequestBody);
+        }
+
+        if (data && data.access_token) {
           storeValue(STORAGE_KEYS.accessToken, data.access_token);
           storeValue(STORAGE_KEYS.refreshToken, data.refresh_token || '');
           storeValue(STORAGE_KEYS.expiresAt, String(Date.now() + data.expires_in * 1000));
-          window.localStorage.removeItem(STORAGE_KEYS.codeVerifier);
-          window.localStorage.removeItem(STORAGE_KEYS.authState);
-        } catch (err) {
-          console.error(err);
+        } else {
+          console.error('Token exchange failed', { isLocalhost, backend: !!data });
+          if (!isLocalhost) {
+            window.location.href = `${getAppBaseUrl()}?auth_error=token_exchange_failed`;
+            return;
+          }
         }
 
-        window.location.href = '/';
+        window.localStorage.removeItem(STORAGE_KEYS.codeVerifier);
+        window.localStorage.removeItem(STORAGE_KEYS.authState);
+        window.location.href = getAppBaseUrl();
       }
 
       finishAuth();

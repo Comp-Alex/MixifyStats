@@ -4,6 +4,14 @@ const streakValue = document.getElementById('streakValue');
 const topTrack = document.getElementById('topTrack');
 const topArtist = document.getElementById('topArtist');
 const peakHour = document.getElementById('peakHour');
+const weeklyMoodBadge = document.getElementById('weeklyMoodBadge');
+const weeklyMoodSummary = document.getElementById('weeklyMoodSummary');
+const moodRangeLabel = document.getElementById('moodRangeLabel');
+const moodChart = document.getElementById('moodChart');
+const moodInput = document.getElementById('moodInput');
+const applyMoodButton = document.getElementById('applyMoodButton');
+const moodFeedback = document.getElementById('moodFeedback');
+const rangeButtons = Array.from(document.querySelectorAll('.range-btn'));
 
 const sliderIds = ['volume', 'low', 'mid', 'high'];
 const valueLabels = {
@@ -43,6 +51,19 @@ const CONFIG = {
   scopes: ['user-top-read', 'user-read-private', 'user-read-email'],
 };
 
+function getAppBaseUrl() {
+  const { origin, pathname } = window.location;
+  const trimmedPath = pathname.replace(/\/+$/, '');
+  const segments = trimmedPath.split('/').filter(Boolean);
+
+  if (segments.length && ['callback', 'callback.html'].includes(segments[segments.length - 1])) {
+    segments.pop();
+  }
+
+  const normalizedPath = segments.length ? `/${segments.join('/')}/` : '/';
+  return `${origin}${normalizedPath}`;
+}
+
 function updateMixerUI() {
   sliderIds.forEach((id) => {
     const input = document.getElementById(id);
@@ -65,6 +86,125 @@ function updateMixerUI() {
   document.querySelector('.hero-panel .panel-card.compact .mini-label').textContent = `Tonight's energy · ${intensity}%`;
 }
 
+function mapMoodToMix(prompt) {
+  const text = (prompt || '').toLowerCase();
+
+  if (text.includes('sleepy') || text.includes('chill') || text.includes('dreamy')) {
+    return {
+      volume: 58,
+      low: 72,
+      mid: 38,
+      high: 26,
+      feedback: 'DJ mode: dreamy and mellow, with wide low-end warmth.',
+    };
+  }
+
+  if (text.includes('upbeat') || text.includes('happy') || text.includes('party')) {
+    return {
+      volume: 88,
+      low: 46,
+      mid: 78,
+      high: 84,
+      feedback: 'DJ mode: bright and energetic, perfect for a lift.',
+    };
+  }
+
+  if (text.includes('focus') || text.includes('study') || text.includes('calm')) {
+    return {
+      volume: 64,
+      low: 34,
+      mid: 58,
+      high: 42,
+      feedback: 'DJ mode: focused and balanced, with clean clarity.',
+    };
+  }
+
+  if (text.includes('late') || text.includes('night') || text.includes('moody')) {
+    return {
+      volume: 70,
+      low: 60,
+      mid: 52,
+      high: 64,
+      feedback: 'DJ mode: late-night and moody, with a deep immersive feel.',
+    };
+  }
+
+  return {
+    volume: 72,
+    low: 46,
+    mid: 60,
+    high: 56,
+    feedback: 'DJ mode: balanced and warm, tuned for a steady groove.',
+  };
+}
+
+function applyMoodMix() {
+  const moodText = moodInput?.value || '';
+  const settings = mapMoodToMix(moodText);
+
+  document.getElementById('volume').value = settings.volume;
+  document.getElementById('low').value = settings.low;
+  document.getElementById('mid').value = settings.mid;
+  document.getElementById('high').value = settings.high;
+  if (moodFeedback) {
+    moodFeedback.textContent = settings.feedback;
+  }
+  updateMixerUI();
+}
+
+function renderMoodOverview(data) {
+  if (weeklyMoodBadge) {
+    weeklyMoodBadge.textContent = data.label;
+  }
+
+  if (weeklyMoodSummary) {
+    weeklyMoodSummary.textContent = data.summary;
+  }
+
+  if (moodChart) {
+    moodChart.innerHTML = data.bars.map((bar) => `
+      <div class="chart-bar-group">
+        <div class="chart-bar" style="--height: ${Math.max(18, bar.value)}%; --bar-color: ${bar.color};"></div>
+        <span class="chart-bar-label">${bar.label}</span>
+      </div>
+    `).join('');
+  }
+}
+
+function setActiveRange(range) {
+  rangeButtons.forEach((button) => {
+    button.classList.toggle('active', button.dataset.range === range);
+  });
+}
+
+function getRangeLabel(range) {
+  switch (range) {
+    case 'week':
+      return 'Weekly';
+    case 'month':
+      return 'Monthly';
+    default:
+      return 'Daily';
+  }
+}
+
+function getRangePhrase(range) {
+  switch (range) {
+    case 'day':
+      return 'today';
+    case 'month':
+      return 'this month';
+    default:
+      return 'this week';
+  }
+}
+
+function setMoodRangeLabel(range) {
+  if (!moodRangeLabel) return;
+  const label = range === 'day' ? 'Daily mood' : range === 'month' ? 'Monthly mood' : 'Weekly mood';
+  moodRangeLabel.textContent = label;
+}
+
 function setDemoState(statusText = 'Ready to connect to Spotify') {
   document.body.classList.remove('connected');
   statusPill.textContent = statusText;
@@ -72,6 +212,17 @@ function setDemoState(statusText = 'Ready to connect to Spotify') {
   topTrack.textContent = mockData.track;
   topArtist.textContent = mockData.artist;
   peakHour.textContent = mockData.hour;
+  renderMoodOverview({
+    label: 'Balanced glow',
+    summary: 'Your demo listening period feels steady, reflective, and easy to move with.',
+    bars: [
+      { label: 'Energy', value: 72, color: 'linear-gradient(180deg, #8ff0b4, #2ea962)' },
+      { label: 'Mood', value: 68, color: 'linear-gradient(180deg, #8ff0b4, #2ea962)' },
+      { label: 'Flow', value: 76, color: 'linear-gradient(180deg, #8ff0b4, #2ea962)' },
+      { label: 'Tempo', value: 64, color: 'linear-gradient(180deg, #8ff0b4, #2ea962)' },
+      { label: 'Focus', value: 82, color: 'linear-gradient(180deg, #8ff0b4, #2ea962)' },
+    ],
+  });
   updateConnectButton(false);
 }
 
@@ -80,10 +231,17 @@ function getConfiguredClientId() {
 }
 
 function getRedirectUri() {
+  const configuredRedirectUri = new URLSearchParams(window.location.search).get('redirect_uri');
+  if (configuredRedirectUri) {
+    return configuredRedirectUri;
+  }
+
   const origin = window.location.origin;
   if (origin && origin !== 'null' && origin !== 'file://') {
-    return `${origin}/callback.html`;
+    return `${getAppBaseUrl()}callback.html`;
   }
+
+  console.warn('Running from file://; Spotify login requires a local HTTP server at http://127.0.0.1:3000');
   return CONFIG.fallbackRedirectUri;
 }
 
@@ -173,19 +331,15 @@ function getStoredExpiresAt() {
 
 async function refreshAccessToken() {
   const refreshToken = getStoredRefreshToken();
-  const clientId = getConfiguredClientId();
-  if (!refreshToken || !clientId) return null;
+  if (!refreshToken) return null;
 
-  const params = new URLSearchParams({
-    grant_type: 'refresh_token',
-    refresh_token: refreshToken,
-    client_id: clientId,
-  });
-
-  const response = await fetch('https://accounts.spotify.com/api/token', {
+  const response = await fetch('/api/token', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: params.toString(),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+    }),
   });
 
   if (!response.ok) {
@@ -214,7 +368,66 @@ function isSpotifyConnected() {
   return Boolean(getStoredRefreshToken() || (getStoredAccessToken() && getStoredExpiresAt() > Date.now()));
 }
 
-async function loadSpotifyData() {
+function getMoodFromAudioFeatures(audioFeatures, topTrackName, topArtistName, range = 'week') {
+  const rangeLabel = getRangeLabel(range);
+  const rangePhrase = getRangePhrase(range);
+  if (!audioFeatures?.length) {
+    return {
+      label: 'Balanced glow',
+      summary: `${topArtistName || 'Your favorite artist'} is setting a calm, steady rhythm ${rangePhrase}.`,
+      bars: [
+        { label: 'Energy', value: 68, color: 'linear-gradient(180deg, #8ff0b4, #2ea962)' },
+        { label: 'Mood', value: 72, color: 'linear-gradient(180deg, #8ff0b4, #2ea962)' },
+        { label: 'Flow', value: 70, color: 'linear-gradient(180deg, #8ff0b4, #2ea962)' },
+        { label: 'Tempo', value: 60, color: 'linear-gradient(180deg, #8ff0b4, #2ea962)' },
+        { label: 'Focus', value: 76, color: 'linear-gradient(180deg, #8ff0b4, #2ea962)' },
+      ],
+    };
+  }
+
+  const averageEnergy = audioFeatures.reduce((sum, feature) => sum + (feature?.energy || 0), 0) / audioFeatures.length;
+  const averageValence = audioFeatures.reduce((sum, feature) => sum + (feature?.valence || 0), 0) / audioFeatures.length;
+  const averageDanceability = audioFeatures.reduce((sum, feature) => sum + (feature?.danceability || 0), 0) / audioFeatures.length;
+  const averageTempo = audioFeatures.reduce((sum, feature) => sum + (feature?.tempo || 0), 0) / audioFeatures.length;
+  const averageAcousticness = audioFeatures.reduce((sum, feature) => sum + (feature?.acousticness || 0), 0) / audioFeatures.length;
+
+  const energyScore = Math.round(averageEnergy * 100);
+  const moodScore = Math.round(averageValence * 100);
+  const flowScore = Math.round((averageDanceability * 0.7 + averageEnergy * 0.3) * 100);
+  const tempoScore = Math.round(Math.min(100, (averageTempo / 200) * 100));
+  const focusScore = Math.round((averageEnergy * 0.6 + (1 - averageAcousticness) * 0.4) * 100);
+
+  let label = 'Balanced glow';
+  let summary = `${topTrackName || 'your favorite track'} is carrying ${rangePhrase}, with a balanced and easygoing rhythm.`;
+
+  if (energyScore >= 78 && moodScore >= 74) {
+    label = 'High-energy lift';
+    summary = `${getRangeLabel(range)} listening feels upbeat and electric. ${topArtistName || 'Your top artist'} is bringing a bright, confident pulse.`;
+  } else if (energyScore <= 45 && moodScore <= 45) {
+    label = 'Chill reset';
+    summary = `${getRangeLabel(range)} listening is leaning calm and reflective. ${topTrackName || 'Your top track'} is perfect for winding down.`;
+  } else if (moodScore >= 70) {
+    label = 'Sunny momentum';
+    summary = `The vibe is warm and optimistic. ${topArtistName || 'Your top artist'} is keeping ${rangePhrase} feeling light and joyful.`;
+  } else if (energyScore >= 65) {
+    label = 'Focused drive';
+    summary = `You are leaning into a focused, driven groove. ${topTrackName || 'your favorite track'} is keeping the momentum strong.`;
+  }
+
+  return {
+    label,
+    summary,
+    bars: [
+      { label: 'Energy', value: energyScore, color: 'linear-gradient(180deg, #8ff0b4, #2ea962)' },
+      { label: 'Mood', value: moodScore, color: 'linear-gradient(180deg, #8ff0b4, #2ea962)' },
+      { label: 'Flow', value: flowScore, color: 'linear-gradient(180deg, #8ff0b4, #2ea962)' },
+      { label: 'Tempo', value: tempoScore, color: 'linear-gradient(180deg, #8ff0b4, #2ea962)' },
+      { label: 'Focus', value: focusScore, color: 'linear-gradient(180deg, #8ff0b4, #2ea962)' },
+    ],
+  };
+}
+
+async function loadSpotifyData(range = 'week') {
   const accessToken = await ensureValidToken();
   if (!accessToken) {
     statusPill.textContent = 'Ready to connect to Spotify';
@@ -223,10 +436,11 @@ async function loadSpotifyData() {
   }
 
   try {
+    const timeRange = range === 'month' ? 'medium_term' : range === 'day' ? 'short_term' : 'medium_term';
     const [profileResponse, tracksResponse, artistsResponse] = await Promise.all([
       fetch('https://api.spotify.com/v1/me', { headers: { Authorization: `Bearer ${accessToken}` } }),
-      fetch('https://api.spotify.com/v1/me/top/tracks?limit=1&time_range=medium_term', { headers: { Authorization: `Bearer ${accessToken}` } }),
-      fetch('https://api.spotify.com/v1/me/top/artists?limit=1&time_range=medium_term', { headers: { Authorization: `Bearer ${accessToken}` } }),
+      fetch(`https://api.spotify.com/v1/me/top/tracks?limit=5&time_range=${timeRange}`, { headers: { Authorization: `Bearer ${accessToken}` } }),
+      fetch(`https://api.spotify.com/v1/me/top/artists?limit=3&time_range=${timeRange}`, { headers: { Authorization: `Bearer ${accessToken}` } }),
     ]);
 
     if (!profileResponse.ok || !tracksResponse.ok || !artistsResponse.ok) {
@@ -234,18 +448,35 @@ async function loadSpotifyData() {
     }
 
     const profile = await profileResponse.json();
-    const tracks = await tracksResponse.json();
-    const artists = await artistsResponse.json();
-    const track = tracks.items?.[0];
-    const artist = artists.items?.[0];
+    const tracksData = await tracksResponse.json();
+    const artistsData = await artistsResponse.json();
+    const tracks = tracksData.items || [];
+    const artists = artistsData.items || [];
+    const track = tracks[0];
+    const artist = artists[0];
+
+    let audioFeatures = [];
+    const trackIds = tracks.slice(0, 5).map((item) => item?.id).filter(Boolean);
+    if (trackIds.length) {
+      const featuresResponse = await fetch(`https://api.spotify.com/v1/audio-features?ids=${trackIds.join(',')}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      if (featuresResponse.ok) {
+        const featuresData = await featuresResponse.json();
+        audioFeatures = featuresData.audio_features || [];
+      }
+    }
 
     const profileName = profile.display_name || profile.id || 'Spotify listener';
     const trackName = track?.name || 'Midnight Echo';
     const artistName = artist?.name || track?.artists?.[0]?.name || 'Luna Vale';
     const streakText = `${Math.min(30, Math.max(7, Math.round((artist?.popularity || 60) / 5)))} day streak`;
     const hourText = '22:00';
+    const moodData = getMoodFromAudioFeatures(audioFeatures, trackName, artistName, range);
 
     setConnectedState(profileName, streakText, trackName, artistName, hourText);
+    renderMoodOverview(moodData);
   } catch (error) {
     console.error(error);
     setDemoState();
@@ -278,6 +509,29 @@ sliderIds.forEach((id) => {
   input.addEventListener('input', updateMixerUI);
 });
 
+if (applyMoodButton) {
+  applyMoodButton.addEventListener('click', applyMoodMix);
+}
+
+if (moodInput) {
+  moodInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+      event.preventDefault();
+      applyMoodMix();
+    }
+  });
+}
+
+rangeButtons.forEach((button) => {
+  button.addEventListener('click', () => {
+    const range = button.dataset.range || 'week';
+    setActiveRange(range);
+    setMoodRangeLabel(range);
+    loadSpotifyData(range);
+  });
+});
+
+setMoodRangeLabel('week');
 updateMixerUI();
 setDemoState();
-loadSpotifyData();
+loadSpotifyData('week');
