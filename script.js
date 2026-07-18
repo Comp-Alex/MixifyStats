@@ -60,7 +60,7 @@ function getAppBaseUrl() {
     segments.pop();
   }
 
-  const normalizedPath = segments.length ? `/${segments.join('/')}/` : '/';
+  const normalizedPath = segments.length ? `/${segments.join('/')}` : '';
   return `${origin}${normalizedPath}`;
 }
 
