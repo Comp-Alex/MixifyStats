@@ -20,6 +20,8 @@ This is my development of MixifyStats — a Spotify-style stats dashboard with a
 ---
 
 ## Setup Spotify OAuth
+> IMPORTANT: If you accidentally shared your Spotify client secret (for example in chat or a public repo), rotate it immediately in the Spotify Developer Dashboard and update your deployment environment variables. Do not place the client secret in any client-side files such as `callback.html` or `index.html`.
+
 1. Create a Spotify app at https://developer.spotify.com/dashboard.
 2. Add this redirect URI in Spotify:
    - Local dev and Vercel: `https://<your-vercel-domain>/`
@@ -49,6 +51,14 @@ Set these in your Vercel project settings:
 
 ### Local testing
 You can still run locally, but you need a local server that supports the API route, such as Vercel CLI or a Node environment.
+
+To test locally with environment variables:
+
+1. Copy `.env.example` to `.env` and fill in `SPOTIFY_CLIENT_SECRET`.
+2. Ensure `.env` is listed in `.gitignore` so you don't commit secrets.
+3. Use a local server (Vercel CLI or Node) that loads environment variables from `.env`.
+
+If you deployed the secret to Vercel, set `SPOTIFY_CLIENT_SECRET` in the Vercel dashboard under Project Settings → Environment Variables.
 
 ---
 

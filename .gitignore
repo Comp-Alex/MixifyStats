@@ -1,0 +1,14 @@
+# Local environment files
+.env
+.env.local
+.env.*.local
+
+# Node modules
+node_modules/
+
+# Vercel local cache
+.vercel/
+
+# OS files
+Thumbs.db
+*.log
