@@ -103,9 +103,14 @@
     </div>
 
     <script>
-      const query = window.location.search;
-      const redirectUrl = `/${query}`;
-      window.location.replace(redirectUrl);
+      (function () {
+        const query = window.location.search || '';
+        const origin = window.location.origin || (window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : ''));
+        // Redirect back to the app root with the original query string.
+        // Use origin to avoid subtle host mismatches (localhost vs 127.0.0.1).
+        const redirectUrl = query ? `${origin}/` + query : `${origin}/`;
+        window.location.replace(redirectUrl);
+      })();
     </script>
   </body>
 </html>

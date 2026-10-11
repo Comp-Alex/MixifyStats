@@ -323,10 +323,21 @@ async function handleAuthCallback() {
   }
 
   const expectedState = getStoredValue(STORAGE_KEYS.authState);
-  if (!state || !expectedState || state !== expectedState) {
+  // If stored state is present, require it to match. If it's missing (e.g. storage cleared
+  // or user switched hostname), allow proceeding but log a warning so we can still complete auth.
+  if (!state) {
+    statusPill.textContent = 'Missing Spotify auth code. Please try again.';
+    clearStoredAuth();
+    return false;
+  }
+
+  if (expectedState && state !== expectedState) {
     statusPill.textContent = 'Spotify auth state mismatch. Please try again.';
     clearStoredAuth();
     return false;
+  }
+  if (!expectedState) {
+    console.warn('No stored auth state found; proceeding with token exchange.');
   }
 
   try {
